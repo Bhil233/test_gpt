@@ -7,7 +7,6 @@ from typing import Iterable
 
 import httpx
 
-
 DEFAULT_ENDPOINT = "http://127.0.0.1:8000/api/script/detect-fire"
 
 
@@ -84,20 +83,20 @@ class FireUploadClient:
 
 
 def upload_image(
-    image_path: str | Path,
-    endpoint: str = DEFAULT_ENDPOINT,
-    timeout: float = 30.0,
-    min_interval: float = 1.0,
+        image_path: str | Path,
+        endpoint: str = DEFAULT_ENDPOINT,
+        timeout: float = 30.0,
+        min_interval: float = 1.0,
 ) -> dict:
     client = FireUploadClient(endpoint=endpoint, timeout=timeout, min_interval=min_interval)
     return client.upload_image(image_path)
 
 
 def upload_images(
-    image_paths: Iterable[str | Path],
-    endpoint: str = DEFAULT_ENDPOINT,
-    timeout: float = 30.0,
-    min_interval: float = 1.0,
+        image_paths: Iterable[str | Path],
+        endpoint: str = DEFAULT_ENDPOINT,
+        timeout: float = 30.0,
+        min_interval: float = 1.0,
 ) -> list[dict]:
     client = FireUploadClient(endpoint=endpoint, timeout=timeout, min_interval=min_interval)
     return client.upload_images(image_paths)
@@ -116,7 +115,6 @@ def main() -> None:
     for index, (image_path, payload) in enumerate(zip(image_paths, results), start=1):
         print(f"[{index}/{len(image_paths)}] {image_path}")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
-        
 
 
 if __name__ == "__main__":

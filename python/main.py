@@ -88,8 +88,6 @@ def main() -> None:
         except Exception as exc:
             print(f"Upload failed: {exc}")
 
-        time.sleep(max(0.1, args.poll_interval))
-
 
 if __name__ == "__main__":
     main()

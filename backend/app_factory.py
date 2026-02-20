@@ -1,13 +1,26 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import detect_router
+from services.script_uploader import ScriptUploaderProcessManager
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="AI Fire Detection API")
+    uploader_manager = ScriptUploaderProcessManager()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        uploader_manager.start()
+        try:
+            yield
+        finally:
+            uploader_manager.stop()
+
+    app = FastAPI(title="AI Fire Detection API", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
