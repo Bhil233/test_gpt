@@ -53,7 +53,7 @@ const emit = defineEmits(["manual-file-change", "detect-manual-fire"]);
   <div class="layout">
     <aside class="sidebar">
       <section class="panel">
-        <h2>模块一：手动上传</h2>
+        <h2>手动上传</h2>
         <p class="hint">在网页手动选择图片并检测。</p>
 
         <input type="file" accept="image/*" @change="emit('manual-file-change', $event)" />
@@ -64,16 +64,15 @@ const emit = defineEmits(["manual-file-change", "detect-manual-fire"]);
       </section>
 
       <section class="panel">
-        <h2>模块二：脚本上传</h2>
-        <p class="hint">运行上传脚本后，此处会实时显示图片与检测结果。</p>
-        <p class="hint">该模块由上传脚本触发，无需网页按钮操作。</p>
+        <h2>自动上传</h2>
+        <p class="hint">由系统自动上传</p>
       </section>
     </aside>
 
     <section class="workspace">
       <h2>工作区</h2>
       <section class="result-card">
-        <h3>模块一结果（手动上传）</h3>
+        <h3>手动上传结果</h3>
         <div v-if="manualPreviewUrl" class="preview-wrap">
           <img :src="manualPreviewUrl" alt="手动上传预览图" />
         </div>
@@ -85,7 +84,7 @@ const emit = defineEmits(["manual-file-change", "detect-manual-fire"]);
       </section>
 
       <section class="result-card">
-        <h3>模块二结果（脚本上传）</h3>
+        <h3>自动上传结果</h3>
         <p :class="scriptSocketConnected ? 'connected' : 'disconnected'">
           {{ scriptSocketConnected ? "实时连接正常" : "连接断开，正在重连..." }}
         </p>
