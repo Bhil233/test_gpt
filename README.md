@@ -145,11 +145,22 @@ python upload_image.py .\fire.jpg --endpoint http://127.0.0.1:8000/api/script/de
 ## 7. YOLO 脚本说明（可选）
 
 `python/yolo.py` 用于本地摄像头检测，并将检测帧写入 `backend/detected_frames`。  
-该脚本依赖额外包（不在 `backend/requirements.txt` 中）：
-- `ultralytics`
-- `opencv-python`
 
-并需要本地模型文件（脚本中默认 `fire_test.pt`）。
+### 如何使用：
+0.配置好YOLO所需的环境
+1.下载yolo源码（8.4.14）
+2.将源码解压到与此项目同一个目录下
+3.复制python文件夹中的yolo.py与fire_test.pt到ultralytics-8.4.1文件夹中
+4.直接运行yolo.py即可
+例如：
+```text
+test
+├─ fire_detection/
+└─ ultralytics-8.4.14/
+   ├─ fire_test.pt
+   └─ yolo.py
+```
+
 
 ## 8. API 概览
 

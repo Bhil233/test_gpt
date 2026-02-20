@@ -14,9 +14,9 @@ CONF_THRESHOLD = 0.5
 # Save settings
 SAVE_DETECTED_FRAME = True
 SAVE_DIR = "../fire_detection/backend/detected_frames"
-MAX_SAVE_INTERVAL_SEC = 1.0
+MAX_SAVE_INTERVAL_SEC = 5.0
 DEDUP_IOU_THRESHOLD = 0.7
-NO_OBJECT_SAVE_INTERVAL_SEC = 5.0
+NO_OBJECT_SAVE_INTERVAL_SEC = 10.0
 # ==========================================
 
 
