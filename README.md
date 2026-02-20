@@ -10,36 +10,36 @@
 
 ```text
 fire_detection/
-├─ backend/                      # FastAPI 后端
-│  ├─ app_factory.py             # 应用工厂、生命周期、静态资源挂载
-│  ├─ config.py                  # 环境变量配置
-│  ├─ database.py                # SQLAlchemy 异步数据库连接
-│  ├─ main.py                    # FastAPI 入口
-│  ├─ routers/
-│  │  ├─ detect.py               # 火灾检测接口 + WebSocket
-│  │  └─ data_monitor.py         # 数据监控记录 CRUD + 排序
-│  ├─ services/
-│  │  ├─ qwen_client.py          # Qwen 接口调用
-│  │  ├─ monitor_records.py      # 监控记录与图片存储服务
-│  │  └─ script_uploader.py      # 自动上传脚本进程管理
-│  ├─ models/                    # ORM 与 Pydantic 模型
-│  ├─ scripts/rebuild_monitor_records.py
-│  ├─ detected_frames/           # 自动上传监听目录（脚本输入）
-│  ├─ data_image/                # 监控记录图片目录（数据库记录引用）
-│  └─ requirements.txt
-├─ frontend/                     # Vue 3 + Vite 前端
-│  ├─ src/
-│  │  ├─ App.vue                 # 页面主逻辑
-│  │  ├─ components/             # 页面拆分组件
-│  │  ├─ services/fireApi.js     # 前端 API 封装
-│  │  ├─ composables/useScriptSocket.js
-│  │  ├─ utils/format.js
-│  │  └─ config/api.js
-│  └─ package.json
-└─ python/                       # 本地自动上传与 YOLO 脚本
-   ├─ main.py                    # 监听目录并自动上传图片到后端
-   ├─ upload_image.py            # 单张/批量上传工具
-   └─ yolo.py                    # YOLO 检测并落图到 detected_frames
+|-- backend/                      # FastAPI 后端
+|   |-- app_factory.py            # 应用工厂、生命周期、静态资源挂载
+|   |-- config.py                 # 环境变量配置
+|   |-- database.py               # SQLAlchemy 异步数据库连接
+|   |-- main.py                   # FastAPI 入口
+|   |-- routers/
+|   |   |-- detect.py             # 火灾检测接口 + WebSocket
+|   |   `-- data_monitor.py       # 数据监控记录 CRUD + 排序
+|   |-- services/
+|   |   |-- qwen_client.py        # Qwen 接口调用
+|   |   |-- monitor_records.py    # 监控记录与图片存储服务
+|   |   `-- script_uploader.py    # 自动上传脚本进程管理
+|   |-- models/                   # ORM 与 Pydantic 模型
+|   |-- scripts/rebuild_monitor_records.py
+|   |-- detected_frames/          # 自动上传监听目录（脚本输入）
+|   |-- data_image/               # 监控记录图片目录（数据库记录引用）
+|   `-- requirements.txt
+|-- frontend/                     # Vue 3 + Vite 前端
+|   |-- src/
+|   |   |-- App.vue               # 页面主逻辑
+|   |   |-- components/           # 页面拆分组件
+|   |   |-- services/fireApi.js   # 前端 API 封装
+|   |   |-- composables/useScriptSocket.js
+|   |   |-- utils/format.js
+|   |   `-- config/api.js
+|   `-- package.json
+`-- python/                       # 本地自动上传与 YOLO 脚本
+    |-- main.py                   # 监听目录并自动上传图片到后端
+    |-- upload_image.py           # 单张/批量上传工具
+    `-- yolo.py                   # YOLO 检测并落图到 detected_frames
 ```
 
 ## 2. 核心流程
@@ -147,20 +147,20 @@ python upload_image.py .\fire.jpg --endpoint http://127.0.0.1:8000/api/script/de
 `python/yolo.py` 用于本地摄像头检测，并将检测帧写入 `backend/detected_frames`。  
 
 ### 如何使用：
-0.配置好YOLO所需的环境
-1.下载yolo源码（8.4.14）
-2.将源码解压到与此项目同一个目录下
-3.复制python文件夹中的yolo.py与fire_test.pt到ultralytics-8.4.1文件夹中
-4.直接运行yolo.py即可
+0. 配置好YOLO所需的环境
+1. 下载yolo源码（8.4.14）
+2. 将源码解压到与此项目同一个目录下
+3. 复制python文件夹中的yolo.py与fire_test.pt到ultralytics-8.4.1文件夹中
+4. 直接运行yolo.py即可
+  
 例如：
 ```text
 test
-├─ fire_detection/
-└─ ultralytics-8.4.14/
-   ├─ fire_test.pt
-   └─ yolo.py
+|-- fire_detection/
+`-- ultralytics-8.4.14/
+   |-- fire_test.pt
+   `-- yolo.py
 ```
-
 
 ## 8. API 概览
 
