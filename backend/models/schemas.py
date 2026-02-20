@@ -9,6 +9,7 @@ class DetectResponse(BaseModel):
     fire_detected: bool
     result_text: str
     raw_model_output: str | None = None
+    monitor_record: "MonitorRecordRead | None" = None
 
 
 class MonitorRecordBase(BaseModel):

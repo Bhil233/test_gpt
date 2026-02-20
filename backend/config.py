@@ -41,6 +41,7 @@ def _to_int(value: str | None, default: int) -> int:
 
 SCRIPT_UPLOADER_ENABLED = _to_bool(os.getenv("SCRIPT_UPLOADER_ENABLED"), True)
 SCRIPT_UPLOADER_WATCH_DIR = os.getenv("SCRIPT_UPLOADER_WATCH_DIR", "detected_frames")
+DATA_IMAGE_DIR = os.getenv("DATA_IMAGE_DIR", "data_image")
 SCRIPT_UPLOADER_ENDPOINT = os.getenv(
     "SCRIPT_UPLOADER_ENDPOINT",
     "http://127.0.0.1:8000/api/script/detect-fire",

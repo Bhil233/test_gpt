@@ -11,8 +11,9 @@ import config
 
 def _build_prompt() -> str:
     return (
-        "你是火灾检测助手。请严格判断图像中是否存在火焰、明显烟雾或燃烧场景。"
-        "只返回 JSON：{\"fire\": true} 或 {\"fire\": false}。不要返回其他文字。"
+        "You are a fire detection assistant. Determine whether the image contains visible fire, "
+        "dense smoke, or burning scenes. Return JSON only: {\"fire\": true} or {\"fire\": false}. "
+        "Do not return any extra text."
     )
 
 
@@ -27,7 +28,7 @@ async def call_qwen(image_bytes: bytes, mime_type: str) -> str:
         "messages": [
             {
                 "role": "system",
-                "content": "你是一个严谨的火灾图像检测助手。",
+                "content": "You are a strict fire-image detection assistant.",
             },
             {
                 "role": "user",

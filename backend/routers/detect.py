@@ -5,9 +5,12 @@ import base64
 import json
 from threading import Lock
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, WebSocket, WebSocketDisconnect
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from database import get_db
 from models.schemas import DetectResponse
+from services.monitor_records import create_monitor_record
 from services.qwen_client import call_qwen
 from utils import parse_fire_result
 
@@ -55,6 +58,9 @@ class _ScriptUploadSocketHub:
             "image_data_url": f"data:{mime_type};base64,{encoded}",
             "fire_detected": result.fire_detected,
             "result_text": result.result_text,
+            "monitor_record": result.monitor_record.model_dump(mode="json")
+            if result.monitor_record is not None
+            else None,
         }
         return json.dumps(payload, ensure_ascii=False)
 
@@ -102,19 +108,50 @@ async def _read_and_validate_image(file: UploadFile) -> tuple[bytes, str]:
     return image_bytes, file.content_type
 
 
-async def _detect_result(image_bytes: bytes, mime_type: str) -> DetectResponse:
+async def _run_detection(image_bytes: bytes, mime_type: str) -> tuple[bool, str]:
     model_text = await call_qwen(image_bytes=image_bytes, mime_type=mime_type)
     fire_detected = parse_fire_result(model_text)
+    return fire_detected, model_text
+
+
+async def _detect_and_create_record(
+    *,
+    image_bytes: bytes,
+    mime_type: str,
+    source: str,
+    db: AsyncSession,
+) -> DetectResponse:
+    fire_detected, model_text = await _run_detection(image_bytes=image_bytes, mime_type=mime_type)
+    status = "fire" if fire_detected else "normal"
+    remark = f"auto-created from {source}"
+
+    try:
+        monitor_record = await create_monitor_record(
+            db=db,
+            image_bytes=image_bytes,
+            mime_type=mime_type,
+            status=status,
+            remark=remark,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Detection finished, but failed to create monitor record: {exc}",
+        ) from exc
+
     if fire_detected:
         return DetectResponse(
             fire_detected=True,
-            result_text="检测到火灾！请立即处理并报警！",
+            result_text="Fire detected! Please handle immediately and call emergency services.",
             raw_model_output=model_text,
+            monitor_record=monitor_record,
         )
+
     return DetectResponse(
         fire_detected=False,
-        result_text="未发生火灾",
+        result_text="No fire detected.",
         raw_model_output=model_text,
+        monitor_record=monitor_record,
     )
 
 
@@ -135,15 +172,31 @@ async def latest_script_upload_image_ws(websocket: WebSocket) -> None:
 
 
 @router.post("/api/manual/detect-fire", response_model=DetectResponse)
-async def manual_detect_fire(file: UploadFile = File(...)) -> DetectResponse:
+async def manual_detect_fire(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+) -> DetectResponse:
     image_bytes, mime_type = await _read_and_validate_image(file)
-    return await _detect_result(image_bytes=image_bytes, mime_type=mime_type)
+    return await _detect_and_create_record(
+        image_bytes=image_bytes,
+        mime_type=mime_type,
+        source="manual_detect_fire",
+        db=db,
+    )
 
 
 @router.post("/api/script/detect-fire", response_model=DetectResponse)
-async def script_detect_fire(file: UploadFile = File(...)) -> DetectResponse:
+async def script_detect_fire(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+) -> DetectResponse:
     image_bytes, mime_type = await _read_and_validate_image(file)
-    result = await _detect_result(image_bytes=image_bytes, mime_type=mime_type)
+    result = await _detect_and_create_record(
+        image_bytes=image_bytes,
+        mime_type=mime_type,
+        source="script_detect_fire",
+        db=db,
+    )
 
     latest_script_upload_store.save(image_bytes=image_bytes, mime_type=mime_type, result=result)
     await script_upload_socket_hub.broadcast_snapshot(
