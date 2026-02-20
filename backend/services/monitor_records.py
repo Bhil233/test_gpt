@@ -96,7 +96,7 @@ async def create_monitor_record(
     await ensure_database_initialized()
 
     normalized_status = status.strip().lower()
-    if normalized_status not in {"fire", "normal"}:
+    if normalized_status not in {"发生火灾", "无火灾"}:
         normalized_status = "normal"
 
     scene_image_path = save_image_to_data_image(image_bytes=image_bytes, mime_type=mime_type)

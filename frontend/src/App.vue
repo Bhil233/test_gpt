@@ -24,6 +24,8 @@ const monitorRows = ref([]);
 const monitorLoading = ref(false);
 const monitorSubmitting = ref(false);
 const monitorErrorText = ref("");
+const monitorSortBy = ref("created_at");
+const monitorSortOrder = ref("desc");
 const monitorForm = ref({
   id: null,
   scene_image_file: null,
@@ -186,7 +188,11 @@ async function loadMonitorRecords() {
   monitorErrorText.value = "";
 
   try {
-    const response = await fetch(`${apiBase}/api/data-monitor/records`);
+    const query = new URLSearchParams({
+      sort_by: monitorSortBy.value,
+      sort_order: monitorSortOrder.value,
+    });
+    const response = await fetch(`${apiBase}/api/data-monitor/records?${query.toString()}`);
     const data = await parseJsonResponse(response);
     if (!response.ok) {
       throw new Error(data.detail || "获取数据监控列表失败");
@@ -199,6 +205,10 @@ async function loadMonitorRecords() {
   } finally {
     monitorLoading.value = false;
   }
+}
+
+function onMonitorSortChange() {
+  void loadMonitorRecords();
 }
 
 function onMonitorImageChange(event) {
@@ -306,6 +316,29 @@ function formatDateTime(value) {
     return value;
   }
   return date.toLocaleString();
+}
+
+function getMonitorStatusText(status) {
+  const raw = String(status ?? "").trim();
+  const normalized = raw.toLowerCase();
+  if (normalized === "fire" || raw === "发生火灾") {
+    return "发生火灾";
+  }
+  if (normalized === "normal" || normalized === "no_fire" || normalized === "nofire" || raw === "无火灾") {
+    return "无火灾";
+  }
+  return raw || "-";
+}
+
+function getMonitorStatusClass(status) {
+  const statusText = getMonitorStatusText(status);
+  if (statusText === "发生火灾") {
+    return "monitor-status-fire";
+  }
+  if (statusText === "无火灾") {
+    return "monitor-status-normal";
+  }
+  return "";
 }
 
 function resolveMonitorImageUrl(url) {
@@ -477,6 +510,25 @@ onBeforeUnmount(() => {
 
       <section class="result-card">
         <h3>监控数据列表</h3>
+        <div class="monitor-sort-bar">
+          <label class="sort-item">
+            <span>排序字段</span>
+            <select v-model="monitorSortBy" @change="onMonitorSortChange">
+              <option value="id">ID</option>
+              <option value="status">状态</option>
+              <option value="remark">备注</option>
+              <option value="created_at">创建时间</option>
+              <option value="updated_at">更新时间</option>
+            </select>
+          </label>
+          <label class="sort-item">
+            <span>排序方式</span>
+            <select v-model="monitorSortOrder" @change="onMonitorSortChange">
+              <option value="desc">降序</option>
+              <option value="asc">升序</option>
+            </select>
+          </label>
+        </div>
 
         <p v-if="monitorLoading" class="hint">加载中...</p>
         <p v-else-if="!monitorRows.length" class="hint">暂无数据。</p>
@@ -501,7 +553,11 @@ onBeforeUnmount(() => {
                   <img class="table-image" :src="resolveMonitorImageUrl(row.scene_image_url)" alt="现场图片" />
                   <p class="image-path">{{ row.scene_image_path }}</p>
                 </td>
-                <td>{{ row.status }}</td>
+                <td>
+                  <span :class="getMonitorStatusClass(row.status)">
+                    {{ getMonitorStatusText(row.status) }}
+                  </span>
+                </td>
                 <td>{{ row.remark || "-" }}</td>
                 <td>{{ formatDateTime(row.created_at) }}</td>
                 <td>{{ formatDateTime(row.updated_at) }}</td>
@@ -634,6 +690,23 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.monitor-sort-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sort-item {
+  display: grid;
+  gap: 6px;
+}
+
+.sort-item span {
+  font-size: 13px;
+  color: #7c2d12;
+  font-weight: 600;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -693,6 +766,7 @@ h2 {
 input[type="file"],
 input[type="text"],
 input[type="number"],
+select,
 textarea {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
@@ -791,6 +865,15 @@ button:disabled {
   margin: 0;
   color: #047857;
   font-weight: 700;
+}
+
+.monitor-status-fire {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.monitor-status-normal {
+  color: #047857;
 }
 
 @media (max-width: 900px) {

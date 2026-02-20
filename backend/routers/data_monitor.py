@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,10 +42,26 @@ async def _auto_detect_status(image_bytes: bytes) -> str:
 
 
 @router.get("/api/data-monitor/records", response_model=list[MonitorRecordRead])
-async def list_monitor_records(db: AsyncSession = Depends(get_db)) -> list[MonitorRecordRead]:
+async def list_monitor_records(
+    sort_by: Literal["id", "status", "remark", "created_at", "updated_at", "time"] = Query(
+        default="created_at"
+    ),
+    sort_order: Literal["asc", "desc"] = Query(default="desc"),
+    db: AsyncSession = Depends(get_db),
+) -> list[MonitorRecordRead]:
     try:
         await ensure_database_initialized()
-        result = await db.execute(select(MonitorRecord).order_by(MonitorRecord.id.desc()))
+        sort_column_map = {
+            "id": MonitorRecord.id,
+            "status": MonitorRecord.status,
+            "remark": MonitorRecord.remark,
+            "created_at": MonitorRecord.created_at,
+            "updated_at": MonitorRecord.updated_at,
+            "time": MonitorRecord.created_at,
+        }
+        sort_column = sort_column_map[sort_by]
+        order_expr = sort_column.asc() if sort_order == "asc" else sort_column.desc()
+        result = await db.execute(select(MonitorRecord).order_by(order_expr, MonitorRecord.id.desc()))
         rows = list(result.scalars().all())
         return [to_read_model(row) for row in rows]
     except Exception as exc:

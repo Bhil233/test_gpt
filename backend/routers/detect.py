@@ -99,11 +99,11 @@ script_upload_socket_hub = _ScriptUploadSocketHub()
 
 async def _read_and_validate_image(file: UploadFile) -> tuple[bytes, str]:
     if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only image files are supported.")
+        raise HTTPException(status_code=400, detail="仅支持图像文件")
 
     image_bytes = await file.read()
     if not image_bytes:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        raise HTTPException(status_code=400, detail="上传文件为空")
 
     return image_bytes, file.content_type
 
@@ -122,8 +122,8 @@ async def _detect_and_create_record(
     db: AsyncSession,
 ) -> DetectResponse:
     fire_detected, model_text = await _run_detection(image_bytes=image_bytes, mime_type=mime_type)
-    status = "fire" if fire_detected else "normal"
-    remark = f"auto-created from {source}"
+    status = "发生火灾" if fire_detected else "无火灾"
+    remark = "自动上传"
 
     try:
         monitor_record = await create_monitor_record(
@@ -136,20 +136,20 @@ async def _detect_and_create_record(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Detection finished, but failed to create monitor record: {exc}",
+            detail=f"检测已完成但未能创建监控结果: {exc}",
         ) from exc
 
     if fire_detected:
         return DetectResponse(
             fire_detected=True,
-            result_text="Fire detected! Please handle immediately and call emergency services.",
+            result_text="发现火灾！请立即处理！",
             raw_model_output=model_text,
             monitor_record=monitor_record,
         )
 
     return DetectResponse(
         fire_detected=False,
-        result_text="No fire detected.",
+        result_text="未发现火灾。",
         raw_model_output=model_text,
         monitor_record=monitor_record,
     )
